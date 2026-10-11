@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0B1D36">
+<title>教學光譜小樣｜誰在做決定</title>
+<style>
+:root{--bg:#0B1D36;--ink:#EDEBE6;--sub:#8FA0B8;--blue:#C8A65A;--blue2:#7A6A42;--line:#1F3C66;--card:#0F2747;--navy:#0F2747}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;min-height:100vh;padding:20px 16px}
+.wrap{width:100%;max-width:1280px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.brand{font-size:14px;color:var(--sub)}.brand b{color:var(--ink);margin-right:8px;padding-right:10px;border-right:1px solid var(--line)}
+.btns{display:flex;gap:8px}
+.btn{all:unset;cursor:pointer;font-size:13px;padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);transition:all .12s;user-select:none}
+.btn:hover{border-color:var(--blue2);color:var(--blue)}
+.btn:active,.btn.hit{transform:scale(.94);background:var(--blue);color:var(--navy);border-color:var(--blue)}
+.btn.on{background:rgba(200,166,90,.15);border-color:var(--blue2);color:var(--blue);font-weight:700}
+.grid{display:grid;grid-template-columns:300px 1fr 280px;gap:0;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;min-height:480px}
+.col{padding:26px 24px}
+.left{border-right:1px solid var(--line);display:flex;flex-direction:column}
+.right{border-left:1px solid var(--line);display:flex;flex-direction:column}
+.center{padding:0;position:relative;overflow:hidden;min-height:420px;background:linear-gradient(#12305A,#0B1D36)}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.chip{display:inline-block;font-size:12px;font-weight:700;color:var(--navy);background:var(--blue);border-radius:4px;padding:3px 8px;margin-bottom:12px;align-self:flex-start}
+h2{font-size:34px;line-height:1.2}
+.desc{color:var(--sub);font-size:18px;line-height:1.7;margin:12px 0 18px;padding-bottom:18px;border-bottom:2px solid var(--ink)}
+.bul{list-style:none;padding:0;font-size:17px;line-height:1.6}
+.bul li{display:flex;gap:10px;margin-bottom:12px}
+.bul li:before{content:"";flex:none;width:9px;height:9px;border:2px solid var(--blue2);border-radius:50%;margin-top:7px}
+.bul b{color:var(--blue)}
+.lab{font-size:12px;color:var(--sub);letter-spacing:.06em;font-weight:600;margin-bottom:8px}
+.big{display:flex;gap:22px;margin-bottom:10px}
+.big div{font-size:44px;font-weight:300;line-height:1}
+.big small{display:block;font-size:12px;color:var(--sub);font-weight:600;margin-top:6px}
+#nt{color:var(--ink)}#ns{color:var(--blue)}
+.bar{height:12px;border-radius:6px;background:var(--line);overflow:hidden;display:flex;margin:6px 0 22px}
+.bar i{display:block;height:100%;transition:width .35s cubic-bezier(.3,.8,.3,1)}
+#bt{background:var(--ink)}#bs{background:var(--blue)}
+.quote{background:#14325A;border-left:4px solid var(--blue);border-radius:10px;padding:12px 14px;font-size:18px;line-height:1.6}
+.thr{margin-top:auto;padding-top:18px;font-size:12px;color:var(--blue);font-weight:600;display:flex;gap:8px;align-items:center;transition:opacity .2s}
+.thr:before{content:"";flex:none;width:18px;border-top:2px dashed var(--blue2)}
+.navrow{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:4px;border-top:1px solid var(--line)}
+.ticks{display:flex;flex:1;justify-content:space-between}
+.ticks button{all:unset;cursor:pointer;flex:1;text-align:center;font-size:13px;color:var(--sub);padding:12px 0 10px;border-top:2px solid transparent;margin-top:-5px;transition:all .15s;white-space:nowrap}
+.ticks button b{font-weight:600;opacity:.6;margin-right:3px}
+.ticks button:hover{color:var(--blue)}
+.ticks button.on{color:var(--ink);font-weight:700;border-top-color:var(--ink)}
+.ticks button.on b{opacity:1;color:var(--blue)}
+.ticks button.line{box-shadow:inset 2px 0 0 var(--blue2)}
+.arr{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--sub);font-size:18px;transition:all .15s}
+.arr:hover{background:rgba(200,166,90,.15);color:var(--blue)}
+.arr:active{transform:scale(.88);background:var(--blue);color:var(--navy)}
+.slwrap{margin-top:14px}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--ink),var(--blue));outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#EDEBE6;border:4px solid var(--blue);box-shadow:0 2px 8px rgba(0,0,0,.2);transition:transform .15s}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#EDEBE6;border:4px solid var(--blue)}
+.foot{margin-top:12px;color:var(--sub);font-size:12px}
+@media(max-width:980px){
+ .grid{grid-template-columns:1fr}
+ .center{order:-1;height:340px}
+ .left,.right{border:0;border-top:1px solid var(--line)}
+ .ticks button span{display:none}
+ h2{font-size:28px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><b>第 5 週　教學光譜</b>誰在做決定？拖一下，看球場怎麼變</div>
+    <div class="btns"><button class="btn" id="auto">自動播放</button><button class="btn" id="full">全螢幕</button></div>
+  </div>
+
+  <div class="grid">
+    <div class="col left">
+      <span class="chip" id="chip"></span>
+      <h2 id="nm"></h2>
+      <p class="desc" id="ds"></p>
+      <ul class="bul">
+        <li><span><b>老師</b>　<span id="bt1"></span></span></li>
+        <li><span><b>學生</b>　<span id="bs1"></span></span></li>
+      </ul>
+      <div class="thr" id="thr">E → F　跨過這條線，學生開始自己想答案</div>
+    </div>
+
+    <div class="center"><canvas id="cv" width="1400" height="960"></canvas></div>
+
+    <div class="col right">
+      <div class="lab">誰在做決定</div>
+      <div class="big"><div id="nt"></div><div id="ns"></div></div>
+      <div class="bar"><i id="bt"></i><i id="bs"></i></div>
+      <div class="lab">教練會這樣說</div>
+      <div class="quote" id="saytxt"></div>
+    </div>
+  </div>
+
+  <div class="slwrap"><input id="sl" type="range" min="0" max="10" step="0.01" value="0" aria-label="教學光譜"></div>
+  <div class="navrow">
+    <div class="ticks" id="ticks"></div>
+    <button class="arr" id="pv" aria-label="上一式">←</button>
+    <button class="arr" id="nx" aria-label="下一式">→</button>
+  </div>
+  <div class="foot">決策比例為示意，用來說明方向，不是量測數據。可按鍵盤 ← → 切換。</div>
+</div>
+
+<script>
+const S=[
+ ["A","命令式","一切聽教練的","「看我示範，聽口令，一起做。」",95,"示範、下口令、控制節奏","模仿、跟著口令一起做"],
+ ["B","練習式","自己練，教練巡視","「這五個動作自己選位置練，我來看你。」",85,"巡視、給個別回饋","自選位置與節奏來練習"],
+ ["C","互惠式","兩人互相當教練","「一人打、一人看，照這張檢核表回饋。」",75,"教觀察者怎麼給回饋","一人做、一人看，輪流"],
+ ["D","自測式","自己對照標準評自己","「打完自己評一下，1–3 分。」",65,"提供評量標準","自己對照標準打分"],
+ ["E","包含式","自己挑難度","「球網高、中、低，選你能成功的那一個。」",55,"設計多種難度","自己挑一個能成功的"],
+ ["F","導引式","老師用問題帶著走","「接不到球，你覺得是哪一步出了問題？」",45,"設計一連串小問題","被問題帶著，自己找到答案"],
+ ["G","聚斂式","一起找出唯一答案","「回球前你都先回到哪裡？為什麼？」",35,"問一個有明確答案的問題","推理、比較，找到同一個答案"],
+ ["H","擴散式","同題找出很多解法","「想三種不同的方法把球打過去。」",25,"丟出開放的題目","想出多種做法，各自驗證"],
+ ["I","學生設計個人方案","自己排練習","「這週你想練什麼？自己排計畫給我看。」",15,"給範圍、給回饋","自己設計練習方案"],
+ ["J","學生主動發起","自己提出主題","「我想研究怎麼提升殺球，可以嗎？」",8,"同意、支持","自己提出題目、自己做"],
+ ["K","自學","老師像陪跑的人","「（老師在場邊看，需要時才被找）」",3,"站在場邊，被找才出手","所有決定都自己做"]
+];
+const SHORT=["命令","練習","互惠","自測","包含","導引","聚斂","擴散","設計","發起","自學"];
+const cv=document.getElementById('cv'),c=cv.getContext('2d');let W=cv.width,H=cv.height;
+function fit(){const r=cv.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1);
+  const w=Math.max(200,Math.round(r.width*d)),h=Math.max(200,Math.round(r.height*d));
+  if(w!==W||h!==H||cv.width!==w){cv.width=W=w;cv.height=H=h;st.forEach((s,i)=>{s.gx=W*.36+(i%6)*(W*.10);s.gy=H*.36+Math.floor(i/6)*(H*.24)})}}
+const sl=document.getElementById('sl'),$=id=>document.getElementById(id);
+let cur=0,target=0,t0=performance.now(),timer=null;
+const go=i=>{i=Math.max(0,Math.min(10,i));target=i;sl.value=i};
+S.forEach((s,i)=>{const b=document.createElement('button');b.innerHTML='<b>'+s[0]+'</b><span>'+SHORT[i]+'</span>';if(i==5)b.className='line';b.onclick=()=>{stop();go(i)};$('ticks').appendChild(b)});
+sl.oninput=()=>{stop();target=+sl.value};
+$('pv').onclick=()=>{stop();go(Math.round(target)-1)};$('nx').onclick=()=>{stop();go(Math.round(target)+1)};
+addEventListener('keydown',e=>{if(e.key==='ArrowRight'){stop();go(Math.round(target)+1)}if(e.key==='ArrowLeft'){stop();go(Math.round(target)-1)}});
+// buttons: hit feedback
+document.querySelectorAll('.btn').forEach(b=>b.addEventListener('pointerdown',()=>{b.classList.add('hit');setTimeout(()=>b.classList.remove('hit'),160);try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}}));
+// autoplay
+function stop(){if(timer){clearInterval(timer);timer=null;$('auto').classList.remove('on');$('auto').textContent='自動播放'}}
+$('auto').onclick=()=>{if(timer){stop();return}
+  if(Math.round(target)>=10)go(0);
+  $('auto').classList.add('on');$('auto').textContent='暫停';
+  timer=setInterval(()=>{if(Math.round(target)>=10){stop();return}go(Math.round(target)+1)},2800)};
+$('full').onclick=()=>{const d=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else d.requestFullscreen&&d.requestFullscreen()};
+
+const N=12,st=[];
+for(let i=0;i<N;i++){st.push({gx:0,gy:0,x:.5,y:.5,ph:Math.random()*6.28,sp:.5+Math.random()*.7})}
+const T={x:-.1,y:.5};
+const lerp=(a,b,t)=>a+(b-a)*t;
+const grid=(i,cols,rows,x0,x1,y0,y1)=>[x0+(i%cols)*(x1-x0)/(cols-1),y0+Math.floor(i/rows>=0?i/cols:0)*0+Math.floor(i/cols)*(y1-y0)/(rows-1)];
+const wob=(i,t,a)=>[Math.sin(t*st[i].sp+st[i].ph)*a,Math.cos(t*st[i].sp*1.1+st[i].ph*1.7)*a];
+const near=(p,dx,dy)=>[p[0]+dx,p[1]+dy];
+// 每一式的隊形與老師動線（座標為球場 0~1，可超出表示站在場邊）
+function layout(r,t){
+  const stu=[],ext={};let tea;
+  const base=i=>grid(i,4,3,.17,.83,.2,.8);
+  const w2=a=>i=>{const b=base(i),w=wob(i,t,a);return [b[0]+w[0],b[1]+w[1]]};
+  if(r===0){ // A 命令式：整齊排列、同步動作，老師在前面下口令
+    const b=Math.sin(t*3)*.018;
+    for(let i=0;i<N;i++){const g=grid(i,4,3,.2,.8,.3,.75);stu.push([g[0],g[1]+b])}
+    tea=[.5,-.12];ext.rays=true;
+  }else if(r===1){ // B 練習式：各自在自己的位置練，老師巡視、停在個別學生旁給回饋
+    const k=Math.floor(t/3.2)%N,f=w2(.035);
+    for(let i=0;i<N;i++)stu.push(f(i));
+    const q=stu[k];tea=near(q,.08,.09);ext.link=k;
+  }else if(r===2){ // C 互惠式：兩人一組，一人做、一人看，定時換角色；老師走到各組
+    const C=[[.2,.28],[.5,.28],[.8,.28],[.2,.72],[.5,.72],[.8,.72]],sw=Math.floor(t/5)%2;
+    for(let i=0;i<N;i++){const c=C[i>>1],side=(i&1)?1:-1,doer=((i&1)===sw);
+      stu.push([c[0]+side*.055,c[1]+(doer?Math.sin(t*3+i)*.07:0)])}
+    const k=Math.floor(t/3.5)%6,c=C[k];tea=[c[0],c[1]+.2];ext.pairs=C;
+  }else if(r===3){ // D 自測式：各自練、各自對照標準打分，老師在場邊慢慢走
+    const f=w2(.02);for(let i=0;i<N;i++)stu.push(f(i));
+    tea=[.5+.4*Math.sin(t*.3),1.12];ext.ticks=true;
+  }else if(r===4){ // E 包含式：依難度分成易／中／難幾組，偶爾有人換組；老師在各組間走動
+    const zx=[.17,.5,.83],base0=[0,0,0,0,0,1,1,1,1,2,2,2];
+    for(let i=0;i<N;i++){let z=base0[i];if(i%4===2)z=(z+(Math.floor(t/7)%2))%3;
+      const a=st[i].ph+t*st[i].sp*.7;stu.push([zx[z]+Math.cos(a)*.075,.5+Math.sin(a)*.2])}
+    const k=Math.floor(t/4)%3;tea=[zx[k],.07];ext.zones=zx;
+  }else if(r===5){ // F 導引式：老師把大家叫過來問問題，再分組去試，再回來
+    const ph=(t%10)/10;
+    if(ph<.4){tea=[.5,.34];for(let i=0;i<N;i++){const a=Math.PI*(.08+.84*i/(N-1));stu.push([.5+Math.cos(a)*.36,.34+Math.sin(a)*.36])}ext.q=true}
+    else{const G=[[.22,.3],[.78,.3],[.22,.75],[.78,.75]];
+      for(let i=0;i<N;i++){const g=G[i%4],a=i*2.1+t;stu.push([g[0]+Math.cos(a)*.07,g[1]+Math.sin(a*1.3)*.07])}
+      const k=Math.floor((ph-.4)/.15)%4;tea=[G[k][0],G[k][1]+.17]}
+  }else if(r===6){ // G 聚斂式：各自嘗試，最後收斂到同一個答案
+    const ph=(t%10)/10,star=[.5,.55];ext.star=star;
+    if(ph<.5){const f=w2(.05);for(let i=0;i<N;i++)stu.push(f(i))}
+    else{for(let i=0;i<N;i++){const a=i/N*6.28+t*.2;stu.push([star[0]+Math.cos(a)*.1,star[1]+Math.sin(a)*.1])}}
+    tea=[.5,-.1];
+  }else if(r===7){ // H 擴散式：每個人往不同方向想出不同做法
+    for(let i=0;i<N;i++){const b=base(i),a=st[i].ph+t*st[i].sp*.5;
+      stu.push([b[0]+Math.cos(a)*.1,b[1]+Math.sin(a*1.2)*.11])}
+    tea=[.5+.12*Math.sin(t*.3),.5+.1*Math.cos(t*.25)];ext.hue=true;
+  }else if(r===8){ // I 學生設計個人方案：各練各的，舉手才過去
+    const f=w2(.03),k=Math.floor(t/4.5)%N,asked=(t%4.5)>.4;
+    for(let i=0;i<N;i++)stu.push(f(i));
+    tea=asked?near(stu[k],.08,.09):[.08,1.1];ext.ask=k;
+  }else{ // J 主動發起、K 自學：學生自己組小組；老師在場邊，被找才有互動
+    const G=r===9?[[.25,.3],[.75,.3],[.25,.75],[.75,.75]]:[[.2,.5],[.58,.25],[.82,.72]],gn=G.length;
+    const dr=r===9?.08:.14;
+    for(let i=0;i<N;i++){const g=G[i%gn],a=i*2.3+t*.6;
+      stu.push([g[0]+Math.sin(t*.2+i%gn)*dr+Math.cos(a)*.065,g[1]+Math.cos(t*.17+i%gn)*dr+Math.sin(a*1.2)*.065])}
+    const per=r===9?7:11,k=Math.floor(t/per)%N;tea=[.06,1.12];
+    if((t%per)>per*.5){stu[k]=[.12,1.02];ext.ask=k}
+  }
+  return {stu,tea,ext};
+}
+let lastR=-1;
+function update(i){
+  const r=Math.round(i);if(r===lastR)return;lastR=r;
+  const s=S[r];
+  $('chip').textContent=s[0]+' · '+SHORT[r];
+  $('nm').textContent=s[1];$('ds').textContent=s[2];
+  $('saytxt').textContent=s[3];$('bt1').textContent=s[5];$('bs1').textContent=s[6];
+  $('nt').innerHTML=s[4]+'<small>老師 %</small>';$('ns').innerHTML=(100-s[4])+'<small>學生 %</small>';
+  $('bt').style.width=s[4]+'%';$('bs').style.width=(100-s[4])+'%';
+  [...$('ticks').children].forEach((b,k)=>b.classList.toggle('on',k==r));
+  $('thr').style.opacity=(r>=5)?1:.45;
+}
+function draw(now){
+  const time=(now-t0)/1000;
+  fit();
+  cur+=(target-cur)*.12;
+  const r=Math.round(cur);
+  const tp=lerp(S[Math.floor(cur)][4],S[Math.min(10,Math.ceil(cur))][4],cur%1)/100;
+  c.clearRect(0,0,W,H);
+  const cx0=W*.1,cx1=W*.92,cy0=H*.12,cy1=H*.82,cw=cx1-cx0,ch=cy1-cy0;
+  const X=nx=>cx0+nx*cw,Y=ny=>cy0+ny*ch;
+  const L=layout(r,time);
+  // 學生與老師朝目標位置緩緩移動（所以切換式時會走過去，不會瞬間跳）
+  st.forEach((s,i)=>{const q=L.stu[i];s.x+=(q[0]-s.x)*.09;s.y+=(q[1]-s.y)*.09});
+  T.x+=(L.tea[0]-T.x)*.05;T.y+=(L.tea[1]-T.y)*.05;
+  // 球場
+  c.strokeStyle='#2C4A78';c.lineWidth=4;c.strokeRect(cx0,cy0,cw,ch);
+  c.beginPath();c.moveTo(cx0,Y(.5));c.lineTo(cx1,Y(.5));c.stroke();
+  c.strokeStyle='#5C7BAA';c.setLineDash([14,10]);c.beginPath();c.moveTo(X(.5),cy0-24);c.lineTo(X(.5),cy1+24);c.stroke();c.setLineDash([]);
+  const sr=Math.max(9,Math.min(W,H)*.022);
+  c.textAlign='center';c.textBaseline='middle';
+  // 背景輔助：難度區、答案星號、配對線
+  if(L.ext.zones){const names=['易','中','難'],cols=['#5C7BAA','#8FA0B8','#C8A65A'];
+    L.ext.zones.forEach((zx,z)=>{c.fillStyle=cols[z]+'55';c.beginPath();c.ellipse(X(zx),Y(.5),cw*.14,ch*.34,0,0,6.28);c.fill();
+      c.fillStyle='#8FA0B8';c.font='bold '+Math.round(Math.max(18,sr*2))+'px sans-serif';c.fillText(names[z],X(zx),Y(.05))})}
+  if(L.ext.star){const p=L.ext.star,pr=sr*(1.6+.3*Math.sin(time*3));c.fillStyle='#F2D58A';c.font='bold '+Math.round(pr*1.5)+'px sans-serif';c.fillText('★',X(p[0]),Y(p[1]))}
+  if(L.ext.pairs){c.strokeStyle='#5C7BAA';c.lineWidth=3;L.ext.pairs.forEach((p,k)=>{c.beginPath();c.moveTo(X(p[0]-.055),Y(p[1]));c.lineTo(X(p[0]+.055),Y(p[1]));c.stroke()})}
+  if(L.ext.rays){for(const s of st){c.strokeStyle='rgba(237,235,230,.18)';c.lineWidth=2;c.beginPath();c.moveTo(X(T.x),Y(T.y));c.lineTo(X(s.x),Y(s.y));c.stroke()}}
+  if(L.ext.link!=null){const s=st[L.ext.link];c.strokeStyle='rgba(200,166,90,.6)';c.lineWidth=3;c.beginPath();c.moveTo(X(T.x),Y(T.y));c.lineTo(X(s.x),Y(s.y));c.stroke()}
+  // 老師
+  const tr=lerp(Math.min(W,H)*.075,Math.min(W,H)*.045,1-tp);
+  c.fillStyle='rgba(237,235,230,'+lerp(.55,1,tp)+')';
+  c.beginPath();c.arc(X(T.x),Y(T.y),tr,0,6.28);c.fill();
+  c.fillStyle='#0F2747';c.font='bold '+Math.round(tr*.8)+'px sans-serif';c.fillText('師',X(T.x),Y(T.y)+2);
+  // 學生
+  st.forEach((s,i)=>{
+    c.fillStyle=L.ext.hue?'hsl('+(25+i*26)+',55%,66%)':(tp<.5?'#D9B866':'#9C874F');
+    c.beginPath();c.arc(X(s.x),Y(s.y),sr,0,6.28);c.fill();
+    c.fillStyle='#0F2747';c.beginPath();c.arc(X(s.x),Y(s.y),sr*.3,0,6.28);c.fill();
+    if(L.ext.ticks){const on=Math.sin(time*.6+st[i].ph)>.35;c.strokeStyle='#D9B866';c.lineWidth=2;c.strokeRect(X(s.x)+sr+4,Y(s.y)-sr*.5,sr,sr);
+      if(on){c.fillStyle='#D9B866';c.fillRect(X(s.x)+sr+6,Y(s.y)-sr*.5+2,sr-4,sr-4)}}
+  });
+  // 提問／舉手泡泡
+  c.font='bold '+Math.round(sr*1.5)+'px sans-serif';
+  if(L.ext.q){c.fillStyle='#F2D58A';c.fillText('？',X(T.x)+tr*1.3,Y(T.y)-tr*1.1)}
+  if(L.ext.ask!=null&&(r===8||r===9||r===10)){const s=st[L.ext.ask];c.fillStyle='#F2D58A';c.fillText('？',X(s.x)+sr,Y(s.y)-sr*1.6)}
+  update(cur);
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
