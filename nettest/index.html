@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0F2747">
+<title>網路連線測試</title>
+<style>
+:root{--bg:#F4F6F9;--navy:#0F2747;--gold:#C8A65A;--slate:#56637A;--line:#C9CFD9;--ok:#2F7D5B;--no:#B24A3A;--warn:#B8860B}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--navy);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;padding:20px 16px 40px}
+.wrap{max-width:760px;margin:0 auto}
+h1{font-size:26px;margin-bottom:4px}.sub{color:var(--slate);font-size:16px;line-height:1.6;margin-bottom:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+.btn{all:unset;cursor:pointer;user-select:none;display:block;width:100%;box-sizing:border-box;text-align:center;font-size:22px;font-weight:700;padding:16px;border-radius:12px;background:var(--navy);color:#fff;touch-action:manipulation;transition:transform .08s,background .12s}
+.btn:active,.btn.hit{transform:scale(.97);background:var(--gold);color:var(--navy)}
+.btn.busy{opacity:.6;pointer-events:none}
+.btn.sec{background:#fff;color:var(--navy);border:2px solid var(--navy);font-size:18px;padding:12px;margin-top:10px}
+.prog{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:12px;display:none}.prog i{display:block;height:100%;width:0;background:var(--gold);transition:width .25s}
+.info{font-size:14px;color:var(--slate);line-height:1.7}
+.row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #EEF1F6}
+.row:last-child{border:0}
+.dot{flex:none;width:14px;height:14px;border-radius:50%;background:var(--line)}
+.row.ok .dot{background:var(--ok)}.row.slow .dot{background:var(--warn)}.row.bad .dot{background:var(--no)}
+.nm{flex:1;font-size:17px;font-weight:600}.nm small{display:block;font-weight:400;font-size:13px;color:var(--slate)}
+.ms{font-size:15px;font-weight:700;color:var(--slate);text-align:right;min-width:92px}
+.row.ok .ms{color:var(--ok)}.row.slow .ms{color:var(--warn)}.row.bad .ms{color:var(--no)}
+.verdict{font-size:22px;font-weight:700;line-height:1.5}
+.verdict.ok{color:var(--ok)}.verdict.slow{color:var(--warn)}.verdict.bad{color:var(--no)}
+h3{font-size:14px;color:var(--slate);letter-spacing:.08em;margin-bottom:6px}
+pre{white-space:pre-wrap;font-size:13px;background:#F4F6F9;border-radius:8px;padding:10px;line-height:1.6;font-family:inherit}
+</style></head><body><div class="wrap">
+<h1>網路連線測試</h1>
+<p class="sub">用來確認新教學網站在學校網路上能不能正常使用。請在學校用手機（Wi-Fi 與行動網路各測一次）、教室電腦各按一次，按完把結果畫面截圖給老師。</p>
+<div class="card">
+  <button class="btn" id="go">開始測試</button>
+  <div class="prog" id="prog"><i id="pbar"></i></div>
+  <div class="info" id="env" style="margin-top:12px"></div>
+</div>
+<div class="card" id="resCard" style="display:none">
+  <h3>結果</h3>
+  <div class="verdict" id="verdict"></div>
+  <div id="rows" style="margin-top:8px"></div>
+</div>
+<div class="card" id="copyCard" style="display:none">
+  <h3>文字版（可以複製貼給老師）</h3>
+  <pre id="txt"></pre>
+  <button class="btn sec" id="copy">複製結果</button>
+</div>
+<p class="info">測試只會嘗試連線到上述網站，不會送出任何個人資料。每項最多等 8 秒。</p>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const TESTS=[
+ {n:"本測試頁（GitHub Pages）",d:"新網站準備放的位置",t:"fetch",u:location.href.split('#')[0].split('?')[0],crit:true},
+ {n:"Google 協作平台",d:"舊教學網站所在",t:"fetch",u:"https://sites.google.com/site/hhlinspeclass/"},
+ {n:"Google 簡報／文件",d:"上課簡報",t:"fetch",u:"https://docs.google.com/",crit:true},
+ {n:"Google 雲端硬碟",d:"教材檔案與影片",t:"fetch",u:"https://drive.google.com/",crit:true},
+ {n:"Google Apps Script",d:"表單與計分系統",t:"fetch",u:"https://script.google.com/"},
+ {n:"YouTube 網站",d:"示範影片",t:"fetch",u:"https://www.youtube.com/",crit:true},
+ {n:"YouTube 縮圖",d:"影片預覽圖",t:"img",u:"https://i.ytimg.com/vi/PLPeaIxiRcQ/default.jpg"},
+ {n:"Google 字型",d:"網頁字體",t:"fetch",u:"https://fonts.googleapis.com/"},
+ {n:"jsDelivr（套件庫）",d:"互動頁用的函式庫",t:"fetch",u:"https://cdn.jsdelivr.net/"},
+ {n:"學校官網（對照）",d:"確認網路本身是通的",t:"fetch",u:"https://www.au.edu.tw/"}
+];
+function timeoutP(ms){return new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))}
+async function runOne(t){
+  const t0=performance.now();
+  try{
+    if(t.t==="img"){
+      await Promise.race([new Promise((res,rej)=>{const i=new Image();i.onload=res;i.onerror=()=>rej(new Error('blocked'));i.src=t.u+'?r='+Math.random()}),timeoutP(8000)]);
+    }else{
+      await Promise.race([fetch(t.u+(t.u.includes('?')?'&':'?')+'r='+Math.random(),{mode:'no-cors',cache:'no-store'}),timeoutP(8000)]);
+    }
+    const ms=Math.round(performance.now()-t0);
+    return {ms:ms,st:ms>3000?'slow':'ok'};
+  }catch(e){
+    const ms=Math.round(performance.now()-t0);
+    return {ms:ms,st:'bad',why:e.message==='timeout'?'逾時':'被擋或連不上'};
+  }
+}
+function env(){
+  const c=navigator.connection||{};
+  const bits=[navigator.onLine?'目前有網路':'目前顯示離線'];
+  if(c.effectiveType)bits.push('連線類型：'+c.effectiveType);
+  if(c.type)bits.push('網路：'+c.type);
+  bits.push(/Mobi|Android|iPhone/.test(navigator.userAgent)?'手機/平板':'電腦');
+  return bits.join('　·　');
+}
+$('env').textContent=env();
+document.querySelectorAll('.btn').forEach(function(b){b.addEventListener('pointerdown',function(){b.classList.add('hit');setTimeout(function(){b.classList.remove('hit')},160);try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}})});
+$('go').onclick=async function(){
+  const b=$('go');b.classList.add('busy');b.textContent='測試中…';
+  $('prog').style.display='block';$('pbar').style.width='0';$('resCard').style.display='block';$('copyCard').style.display='none';
+  $('rows').innerHTML='';$('verdict').textContent='';
+  const out=[];
+  for(let i=0;i<TESTS.length;i++){
+    const t=TESTS[i];
+    const r=await runOne(t);out.push({t:t,r:r});
+    const el=document.createElement('div');el.className='row '+r.st;
+    el.innerHTML='<span class="dot"></span><span class="nm">'+t.n+'<small>'+t.d+'</small></span><span class="ms">'+(r.st==='bad'?r.why:(r.ms+' 毫秒'+(r.st==='slow'?'（偏慢）':'')))+'</span>';
+    $('rows').appendChild(el);
+    $('pbar').style.width=Math.round((i+1)/TESTS.length*100)+'%';
+  }
+  const own=out[0].r,bad=out.filter(function(o){return o.r.st==='bad'}),slow=out.filter(function(o){return o.r.st==='slow'});
+  const critical=out.filter(function(o){return o.t.crit&&o.r.st==='bad'});
+  let v,cls;
+  if(own.st==='bad'){v='連本測試頁都有問題，請確認網路後重測。';cls='bad'}
+  else if(critical.length){v='有重要網站連不上：'+critical.map(function(o){return o.t.n}).join('、')+'。新網站在這個網路可能受影響。';cls='bad'}
+  else if(bad.length){v='主要功能可用，但有 '+bad.length+' 項連不上，請看下面清單。';cls='slow'}
+  else if(slow.length){v='全部連得上，但有 '+slow.length+' 項偏慢。';cls='slow'}
+  else{v='全部連得上，速度正常。';cls='ok'}
+  $('verdict').textContent=v;$('verdict').className='verdict '+cls;
+  $('txt').textContent='網路測試 '+new Date().toLocaleString('zh-TW')+'\n'+env()+'\n結論：'+v+'\n'+out.map(function(o){return (o.r.st==='bad'?'✗ ':'✓ ')+o.t.n+'：'+(o.r.st==='bad'?o.r.why:o.r.ms+'ms')}).join('\n');
+  $('copyCard').style.display='block';
+  b.classList.remove('busy');b.textContent='再測一次';
+};
+$('copy').onclick=async function(){try{await navigator.clipboard.writeText($('txt').textContent);$('copy').textContent='已複製 ✓'}catch(e){$('copy').textContent='請長按文字自行複製'}setTimeout(function(){$('copy').textContent='複製結果'},2200)};
+</script></body></html>
